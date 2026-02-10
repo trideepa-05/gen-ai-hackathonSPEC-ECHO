@@ -15,7 +15,10 @@ export function Login() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/dashboard");
+    if (demoMode || email || password) {
+      localStorage.setItem('auth', JSON.stringify({ email, isLoggedIn: true }));
+      navigate("/dashboard");
+    }
   };
 
   return (

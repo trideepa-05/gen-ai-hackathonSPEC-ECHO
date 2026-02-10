@@ -8,10 +8,11 @@ import { Label } from "../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { useFraudAnalysis } from "../hooks/useFraudAnalysis";
 
 export function ClaimForm() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { analyze, loading } = useFraudAnalysis();
   
   const [formData, setFormData] = useState({
     age: "",
@@ -22,30 +23,28 @@ export function ClaimForm() {
     previousClaims: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    try {
+      const result = await analyze({
+        age: parseInt(formData.age),
+        vehiclePrice: formData.vehiclePrice,
+        claimAmount: parseFloat(formData.claimAmount),
+        accidentType: formData.accidentType,
+        severity: formData.severity,
+        previousClaims: parseInt(formData.previousClaims),
+      });
 
-    // Simulate AI analysis
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      // Simple logic to determine if claim is fraudulent
-      const claimAmount = parseFloat(formData.claimAmount);
-      const vehiclePrice = parseFloat(formData.vehiclePrice);
-      const previousClaims = parseInt(formData.previousClaims);
-      
-      const isFraudulent = 
-        claimAmount > vehiclePrice * 0.8 || 
-        previousClaims > 3 || 
-        formData.severity === "catastrophic";
-      
-      if (isFraudulent) {
-        navigate("/fraud-alert", { state: { formData } });
+      // Navigate to appropriate result page
+      if (result.level === 'HIGH') {
+        navigate("/fraud-alert", { state: { result, formData } });
       } else {
-        navigate("/legitimate", { state: { formData } });
+        navigate("/legitimate", { state: { result, formData } });
       }
-    }, 2000);
+    } catch (err) {
+      console.error('Analysis failed:', err);
+    }
   };
 
   const updateFormData = (field: string, value: string) => {
@@ -58,13 +57,26 @@ export function ClaimForm() {
     const claimAmount = parseFloat(formData.claimAmount);
     const vehiclePrice = parseFloat(formData.vehiclePrice);
     const previousClaims = parseInt(formData.previousClaims) || 0;
+    const age = parseInt(formData.age) || 0;
     
-    let risk = 0;
-    if (claimAmount > vehiclePrice * 0.8) risk += 40;
-    if (previousClaims > 3) risk += 30;
-    if (formData.severity === "catastrophic") risk += 30;
+    let score = 0;
     
-    return Math.min(risk, 100);
+    // Age risk
+    if (age < 25) score += 20;
+    else if (age > 70) score += 15;
+    
+    // Claim amount vs vehicle price
+    if (claimAmount > vehiclePrice * 0.8) score += 40;
+    else if (claimAmount > vehiclePrice * 0.5) score += 20;
+    
+    // Previous claims
+    if (previousClaims > 3) score += 30;
+    
+    // Severity
+    if (formData.severity === "catastrophic") score += 25;
+    else if (formData.severity === "major") score += 10;
+    
+    return Math.min(score, 100);
   };
 
   const riskScore = getRiskPreview();
@@ -183,9 +195,9 @@ export function ClaimForm() {
                   <Button
                     type="submit"
                     className="w-full h-12 bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] hover:from-[#1E3A8A]/90 hover:to-[#3B82F6]/90 text-white"
-                    disabled={isLoading}
+                    disabled={loading}
                   >
-                    {isLoading ? (
+                    {loading ? (
                       <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         Analyzing Risk...

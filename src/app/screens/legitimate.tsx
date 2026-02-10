@@ -4,19 +4,23 @@ import { Chatbot } from "../components/chatbot";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { CheckCircle2, FileCheck, Download } from "lucide-react";
+import { RiskGauge } from "../components/charts/RiskGauge";
+import { FraudAnalysisResult } from "../lib/fraudLogic";
 
 export function Legitimate() {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  const result = location.state?.result as FraudAnalysisResult | undefined;
   const formData = location.state?.formData || {};
 
-  const riskScore = 12; // Low risk score for legitimate claim
-
-  const verificationChecks = [
-    "Clean claim history verified",
-    "Claim amount reasonable and verified",
+  // Fallback values if no result provided
+  const riskScore = result?.score || 12;
+  const verificationChecks = result?.reasons || [
+    "Claim history verified and clean",
+    "Claim amount is reasonable",
     "No suspicious patterns detected",
-    "Documentation complete and authentic",
+    "Documentation is complete",
   ];
 
   return (

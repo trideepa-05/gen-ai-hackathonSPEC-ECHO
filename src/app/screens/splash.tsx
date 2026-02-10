@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { motion } from "motion/react";
-import logoImage from "figma:asset/7ef9e6f1b12e2805bd264548da5a93835441e38b.png";
+
+const logoImage = new URL("../../assets/7ef9e6f1b12e2805bd264548da5a93835441e38b.png", import.meta.url).href;
 
 export function Splash() {
   const navigate = useNavigate();
@@ -23,52 +23,33 @@ export function Splash() {
       </div>
 
       {/* Logo */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1, ease: "easeOut" }}
-        className="relative z-10"
-      >
+      <div className="relative z-10">
         <img 
           src={logoImage} 
           alt="ShadowTrace Logo" 
-          className="w-80 h-80 object-contain drop-shadow-2xl"
+          className="w-80 h-80 object-contain drop-shadow-2xl" 
+          onError={(e) => {
+            console.error('Image failed to load:', logoImage);
+            (e.target as HTMLImageElement).style.display = 'none'; 
+          }}
         />
-      </motion.div>
+      </div>
 
       {/* Subtitle */}
-      <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.5 }}
-        className="text-white/80 text-2xl mt-8 tracking-wide relative z-10"
-      >
+      <p className="text-white/80 text-2xl mt-8 tracking-wide relative z-10">
         AI-Powered Insurance Fraud Detection
-      </motion.p>
+      </p>
 
       {/* Loading dots */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 1 }}
-        className="flex gap-3 mt-12 relative z-10"
-      >
+      <div className="flex gap-3 mt-12 relative z-10">
         {[0, 1, 2].map((i) => (
-          <motion.div
+          <div
             key={i}
-            className="w-3 h-3 bg-[#3B82F6] rounded-full"
-            animate={{
-              scale: [1, 1.5, 1],
-              opacity: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              delay: i * 0.2,
-            }}
+            className="w-3 h-3 bg-[#3B82F6] rounded-full animate-pulse"
+            style={{ animationDelay: `${i * 0.2}s` }}
           />
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }

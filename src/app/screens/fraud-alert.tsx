@@ -4,19 +4,22 @@ import { Chatbot } from "../components/chatbot";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { AlertTriangle, Eye, FileText } from "lucide-react";
+import { RiskGauge } from "../components/charts/RiskGauge";
+import { FraudAnalysisResult } from "../lib/fraudLogic";
 
 export function FraudAlert() {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  const result = location.state?.result as FraudAnalysisResult | undefined;
   const formData = location.state?.formData || {};
 
-  const riskScore = 87; // High risk score for fraud alert
-
-  const fraudReasons = [
-    "Claim amount exceeds 80% of vehicle value",
-    "Multiple prior claims detected (5 claims)",
-    "Catastrophic damage inconsistent with incident",
-    "Claim submitted outside normal timeframe",
+  // Fallback values if no result provided
+  const riskScore = result?.score || 87;
+  const reasons = result?.reasons || [
+    "Claim amount exceeds safe thresholds",
+    "Multiple prior claims detected",
+    "Pattern inconsistent with incident type",
   ];
 
   return (
@@ -104,7 +107,7 @@ export function FraudAlert() {
                 <div>
                   <h3 className="font-semibold text-lg mb-4 text-gray-800">Suspicious Patterns Detected:</h3>
                   <div className="space-y-3">
-                    {fraudReasons.map((reason, index) => (
+                    {reasons.map((reason, index) => (
                       <div key={index} className="flex items-start p-4 bg-red-50 rounded-lg border-l-4 border-[#EF4444]">
                         <AlertTriangle className="w-5 h-5 text-[#EF4444] mr-3 mt-0.5 flex-shrink-0" />
                         <p className="text-sm text-gray-700">{reason}</p>
